@@ -142,7 +142,7 @@ class InetnumDict(
         },
     )
 ):
-    country: NotRequired[str]
+    country: NotRequired[list[str]]
     inetnum: NotRequired[str]
     inet6num: NotRequired[str]
     netname: NotRequired[str]
