@@ -13,16 +13,7 @@ pipx install .
 pipx install git+https://github.com/s3rgeym/ripe-ip-search.git
 ```
 
-Example:
-
-```bash
-$ ripe-ip-search 'sberbank'
-94.25.75.0/24
-91.217.194.0/24
-109.124.69.104/30
-...
-46.38.35.56/30
-```
+![image](https://github.com/s3rgeym/ripe-ip-search/assets/12753171/cef591cd-f252-4475-bbaf-85e35ece6309)
 
 Use `--details` flag to output results in JSONL.
 
