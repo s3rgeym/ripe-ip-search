@@ -13,6 +13,8 @@ pipx install .
 pipx install git+https://github.com/s3rgeym/ripe-ip-search.git
 ```
 
+Usage:
+
 ![image](https://github.com/s3rgeym/ripe-ip-search/assets/12753171/cef591cd-f252-4475-bbaf-85e35ece6309)
 
 Use `--details` flag to output results in JSONL.
