@@ -21,7 +21,7 @@ import ipaddress
 import json
 import os
 
-__version__ = "0.1.5"
+__version__ = "0.1.6"
 __author__ = "Sergey M"
 
 _LOG = logging.getLogger(__name__)
@@ -228,8 +228,8 @@ class SearchClient:
         # $ whois -t inetnum | grep multiple | cut -d: -f1 | jq --raw-input . | jq --slurp .
         multiple_fields = [
             "descr",
-            # фактически это поле не встречается более одного раза
-            # "country",
+            # я думал, что country не может дублироваться, но все же нашел такую запись
+            "country",
             "language",
             "admin-c",
             "tech-c",
@@ -249,7 +249,7 @@ class SearchClient:
                 rv.setdefault(key, [])
                 rv[key].append(value)
             else:
-                assert key not in rv
+                assert key not in rv, f"duplcated key: {key}"
                 rv[key] = value
 
         return rv

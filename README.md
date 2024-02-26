@@ -22,7 +22,7 @@ Use `--details` flag to output results in JSONL.
 Example JSONL output:
 
 ```json
-{"networks": ["46.38.35.56/30"], "num_addresses": 4, "details": {"primary-key": "10344800", "object-type": "inetnum", "lookup-key": "46.38.35.56 - 46.38.35.59", "inetnum": "46.38.35.56 - 46.38.35.59", "netname": "TEL-NET-10873", "descr": ["object-KRASNOGORSKRECHNAYA8, client-Aktsionernij kommercheskij Sberegatelnij bank Rossijskoj Federatsii otkritoe aktsionernoe obshestvo, Sberbank Rossii OAO"], "country": "RU", "admin-c": ["AVB160-RIPE"], "tech-c": ["AVB160-RIPE"], "status": "ASSIGNED PA", "notify": ["kalex@tel.ru"], "mnt-by": ["TEL-NET-MNT"], "created": "2011-12-02T05:24:21Z", "last-modified": "2011-12-02T05:24:21Z"}}
+{"networks": ["5.45.214.128/25"], "num_addresses": 128, "details": {"primary-key": "19167233", "object-type": "inetnum", "lookup-key": "5.45.214.128 - 5.45.214.255", "inetnum": "5.45.214.128 - 5.45.214.255", "netname": "YANDEX-5-45-214-128", "descr": ["Yandex enterprise network"], "country": ["RU"], "org": "ORG-YA1-RIPE", "admin-c": ["YNDX1-RIPE"], "tech-c": ["YNDX1-RIPE"], "status": "ASSIGNED PA", "remarks": ["INFRA-AW"], "mnt-by": ["YANDEX-MNT"], "created": "2018-05-31T11:35:46Z", "last-modified": "2022-04-05T15:29:12Z"}}
 ```
 
 Also useful `-vv` to debug.
