@@ -1,6 +1,6 @@
 # ripe-ip-search
 
-Search ip addresses using RIPE DB. It uses [fulltext search API](https://apps.db.ripe.net/db-web-ui/fulltextsearch).
+Tool to search ip addresses using RIPE DB. It uses [fulltext search API](https://apps.db.ripe.net/db-web-ui/fulltextsearch) and help to find ip addresses owned by companies. Useful for port scanning and etc.
 
 Installation:
 

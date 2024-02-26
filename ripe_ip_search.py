@@ -21,7 +21,7 @@ import ipaddress
 import json
 import os
 
-__version__ = "0.1.6"
+__version__ = "0.1.7"
 __author__ = "Sergey M"
 
 _LOG = logging.getLogger(__name__)
@@ -81,6 +81,7 @@ class NameSpace(argparse.Namespace):
     search_term: str
     verbosity: int
     details: bool
+    banner: bool
 
 
 def parse_args(
@@ -101,6 +102,12 @@ def parse_args(
         action=argparse.BooleanOptionalAction,
         default=False,
         help="show details",
+    )
+    parser.add_argument(
+        "--banner",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="show banner",
     )
     parser.add_argument("search_term", nargs="+", help="search text")
 
@@ -309,7 +316,8 @@ def main(argv: Sequence[str] | None = None) -> int | None:
     _LOG.setLevel(logging_level)
     _LOG.addHandler(ColorHandler())
 
-    print_stderr(BANNER)
+    if args.banner:
+        print_stderr(BANNER)
 
     try:
         client = SearchClient()
