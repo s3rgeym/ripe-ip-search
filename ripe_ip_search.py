@@ -150,7 +150,15 @@ class SearchClient:
         }
 
     def _get_headers(self) -> dict[str, str]:
-        return {"accept": "application/json"}
+        # по факту нужен только один заголовок
+        # return {"accept": "application/json"}
+        return {
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Content-Type": "application/json; charset=utf-8",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+            "X-Requested-With": "XMLHttpRequest",
+        }
 
     def request(
         self, method: str, endpoint: str, *args: Any, **kwargs: Any
