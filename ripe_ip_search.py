@@ -126,7 +126,7 @@ class SearchResult(NamedTuple):
 
 class InetnumDict(
     TypedDict(
-        "InetnumDict",
+        "_InetnumDict",
         {
             "object-type": Literal["inetnum", "inet6num"],
             "primary-key": str,
@@ -262,7 +262,13 @@ class SearchClient:
             )
             assert step >= len(search_result.items)
             yield from map(self._inetnum2dict, search_result.items)
-            if start + len(search_result.items) >= search_result.total:
+            processed = start + len(search_result.items)
+            _LOG.debug(
+                "search results processed: %d/%d",
+                processed,
+                search_result.total,
+            )
+            if processed >= search_result.total:
                 break
 
 
