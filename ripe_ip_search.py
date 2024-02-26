@@ -21,7 +21,7 @@ import ipaddress
 import json
 import os
 
-__version__ = "0.1.7"
+__version__ = "0.1.8"
 __author__ = "Sergey M"
 
 _LOG = logging.getLogger(__name__)
