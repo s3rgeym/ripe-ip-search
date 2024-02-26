@@ -21,7 +21,7 @@ import ipaddress
 import json
 import os
 
-__version__ = "0.1.4"
+__version__ = "0.1.5"
 __author__ = "Sergey M"
 
 _LOG = logging.getLogger(__name__)
@@ -102,7 +102,7 @@ def parse_args(
         default=False,
         help="show details",
     )
-    parser.add_argument("search_term", help="search text")
+    parser.add_argument("search_term", nargs="+", help="search text")
 
     return parser, parser.parse_args(argv)
 
@@ -254,11 +254,15 @@ class SearchClient:
 
         return rv
 
+    def _quote(self, s: str) -> str:
+        # как оказалось кавычки необязательны
+        return s if s.isalnum() else '"' + s.replace('"', r"\"") + '"'
+
     def search_inetnums(self, search_term: str) -> Iterable[InetnumDict]:
         step = 10
         for start in itertools.count(step=step):
             search_result = self.search(
-                q=f'("{search_term}") AND (object-type:inet6num OR object-type:inetnum)',
+                q=f"({self._quote(search_term)}) AND (object-type:inetnum OR object-type:inet6num)",
                 start=start,
             )
             assert step >= len(search_result.items)
@@ -276,7 +280,7 @@ class SearchClient:
 def get_networks(
     s: str,
 ) -> Iterable[ipaddress.IPv4Network] | Iterable[ipaddress.IPv6Network]:
-    _LOG.debug("parse networks: %s", s)
+    # _LOG.debug("parse networks: %s", s)
     try:
         start_ip, end_ip = map(
             ipaddress.ip_address, map(str.strip, s.split("-"))
@@ -292,7 +296,7 @@ def get_networks(
 def main(argv: Sequence[str] | None = None) -> int | None:
     parser, args = parse_args(argv=argv)
 
-    if not (search_term := args.search_term.strip()):
+    if not (search_term := " ".join(args.search_term).strip()):
         parser.error("empty search text")
 
     logging_level = max(
