@@ -21,7 +21,7 @@ import ipaddress
 import json
 import os
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 _LOG = logging.getLogger(__name__)
 
@@ -153,7 +153,7 @@ class SearchClient:
 
     @cached_property
     def referer(self) -> str:
-        return urljoin(self.api_url, '/db-web-ui/fulltextsearch')
+        return urljoin(self.api_url, "/db-web-ui/fulltextsearch")
 
     def _get_headers(self) -> dict[str, str]:
         # по факту нужен только один заголовок
