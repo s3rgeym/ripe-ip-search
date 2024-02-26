@@ -127,7 +127,11 @@ class SearchClient:
     ) -> dict:
         try:
             r = self.session.request(
-                method, self.api_url + endpoint, *args, **kwargs
+                method, 
+                self.api_url + endpoint,
+                *args,
+                headers=self._get_headers(),
+                **kwargs,
             )
             return r.json()
         except requests.JSONDecodeError as ex:
@@ -151,7 +155,6 @@ class SearchClient:
             "GET",
             "/fulltextsearch/select",
             params,
-            headers=self._get_headers(),
         )
 
         assert data["result"]["name"] == "response"
