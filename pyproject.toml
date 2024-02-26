@@ -1,0 +1,33 @@
+# https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ripe_ip_search"
+authors = [{name = "Sergey M"}]
+readme = "README.md"
+license = {file = "LICENSE"}
+classifiers = ["License :: OSI Approved :: Apache Software License"]
+
+dependencies = [
+  "requests",
+]
+
+dynamic = ["version"]
+
+# pip install -e '.[dev]'
+[project.optional-dependencies]
+dev = [
+  "black",
+  "pylint",
+]
+
+[project.urls]
+Repository = "https://github.com/s3rgeym/ripe-ip-search.git"
+
+[tool.setuptools.dynamic]
+version = {attr = "ripe_ip_search.__version__"}
+
+[project.scripts]
+ripe-ip-search = 'ripe_ip_search:main'
