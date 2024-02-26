@@ -2,7 +2,7 @@ import requests
 import argparse
 
 import sys
-from typing import Sequence, Any, NamedTuple, Iterable
+from typing import Sequence, Any, NamedTuple, Iterable, TypedDict, NotRequired
 from dataclasses import dataclass
 import logging
 import itertools
@@ -101,6 +101,22 @@ class SearchResult(NamedTuple):
     items: list[list[tuple[str, str]]]
 
 
+class InetnumDict(TypedDict(
+    "InetnumDict",
+    {
+        "primary-key": str,
+        "lookup-key": str,
+    },
+)):
+    country: NotRequired[str]
+    inetnum: NotRequired[str]
+    inet6num: NotRequired[str]
+    netname: NotRequired[str]
+    descr: NotRequired[list[str]]
+    status: NotRequired[str]
+    ...
+
+
 @dataclass
 class SearchClient:
     session: requests.Session | None = None
@@ -165,6 +181,48 @@ class SearchClient:
             items=self._normalize_docs(data),
         )
 
+    def _inetnum2dict(self, data: list[tuple[str, str]]) -> InetnumDict:
+        # Некоторые поля встречаются более одного раза
+        # $ whois -t inetnum | grep multiple | cut -d: -f1 | jq --raw-input . | jq --slurp .
+        multiple_fields = [
+            "descr",
+            # фактически это поле не встречается более одного раза
+            # "country",
+            "language",
+            "admin-c",
+            "tech-c",
+            "remarks",
+            "notify",
+            "mnt-by",
+            "mnt-lower",
+            "mnt-domains",
+            "mnt-routes",
+            "mnt-irt",
+        ]
+    
+        rv = {}
+    
+        for key, value in data:
+            if key in multiple_fields:
+                rv.setdefault(key, [])
+                rv[key].append(value)
+            else:
+                assert key not in rv
+                rv[key] = value
+    
+        return rv
+
+
+    def search_inetnums(self, search_term: str) -> Iterable[InetnumDict]:
+        for start in itertools.count(step=10):
+            search_result = self.search(
+                q=f'("{search_term}") AND (object-type:inet6num OR object-type:inetnum)',
+                start=start,
+            )
+            yield from map(self._inetnum2dict, search_result.items)
+            if start + len(search_result.items) >= search_result.total:
+                break
+
 
 def get_networks(
     s: str,
@@ -180,73 +238,6 @@ def get_networks(
             yield ipaddress.ip_network(s)
         except ValueError:
             raise ValueError("invalid network: " + s)
-
-
-def inetnum2dict(data: list[tuple[str, str]]) -> dict[str, str | list[str]]:
-    # Некоторые поля встречаются более одного раза
-    # $ whois -t inetnum | grep multiple | cut -d: -f1 | jq --raw-input . | jq --slurp .
-    multiple_fields = [
-        "descr",
-        # фактически это поле не встречается более одного раза
-        # "country",
-        "language",
-        "admin-c",
-        "tech-c",
-        "remarks",
-        "notify",
-        "mnt-by",
-        "mnt-lower",
-        "mnt-domains",
-        "mnt-routes",
-        "mnt-irt",
-    ]
-
-    rv = {}
-
-    for key, value in data:
-        if key in multiple_fields:
-            rv.setdefault(key, [])
-            rv[key].append(value)
-        else:
-            assert key not in rv
-            rv[key] = value
-
-    return rv
-
-
-def ripe_ip_search(search_term: str, detailed: bool) -> None:
-    client = SearchClient()
-
-    for start in itertools.count(step=10):
-        search_result = client.search(
-            q=f'("{search_term}") AND (object-type:inet6num OR object-type:inetnum)',
-            start=start,
-        )
-        for item in search_result.items:
-            item = inetnum2dict(item)
-            _LOG.debug(item)
-            assert item["object-type"] in ("inetnum", "inet6num")
-            try:
-                networks = list(get_networks(item["lookup-key"]))
-                if detailed:
-                    json.dump(
-                        {
-                            "networks": list(map(str, networks)),
-                            "num_addresses": sum(
-                                net.num_addresses for net in networks
-                            ),
-                            "item": item,
-                        },
-                        sys.stdout,
-                    )
-                    sys.stdout.write(os.linesep)
-                else:
-                    for net in networks:
-                        print(net)
-            except Exception as ex:
-                _LOG.warning(ex)
-        if start + len(search_result.items) >= search_result.total:
-            break
 
 
 def main(argv: Sequence[str] | None = None) -> int | None:
@@ -266,7 +257,29 @@ def main(argv: Sequence[str] | None = None) -> int | None:
     _LOG.addHandler(ColorHandler())
 
     try:
-        ripe_ip_search(search_term=search_term, detailed=args.detailed)
+        client = SearchClient()
+        for item in client.search_inetnums(search_term=search_term):
+            _LOG.debug(item)
+            assert item["object-type"] in ("inetnum", "inet6num")
+            try:
+                networks = list(get_networks(item["lookup-key"]))
+                if args.detailed:
+                    json.dump(
+                        {
+                            "networks": list(map(str, networks)),
+                            "num_addresses": sum(
+                                net.num_addresses for net in networks
+                            ),
+                            "item": item,
+                        },
+                        sys.stdout,
+                    )
+                    sys.stdout.write(os.linesep)
+                else:
+                    for net in networks:
+                        print(net)
+            except Exception as ex:
+                _LOG.warning(ex)
         _LOG.info("Finished!")
     except KeyboardInterrupt:
         _LOG.critical("Search interrupted by user")
