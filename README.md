@@ -5,12 +5,10 @@ Tool to search ip addresses using RIPE DB. It uses [fulltext search API](https:/
 Installation:
 
 ```bash
+# latest pypi version
 pipx install ripe-ip-search
 
-git clone https://github.com/s3rgeym/ripe-ip-search.git
-pipx install .
-
-# latest commit
+# latest github commit
 pipx install --force git+https://github.com/s3rgeym/ripe-ip-search.git
 ```
 
