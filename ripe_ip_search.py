@@ -21,7 +21,7 @@ import ipaddress
 import json
 import os
 
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 __author__ = "Sergey M"
 
 _LOG = logging.getLogger(__name__)
@@ -30,6 +30,7 @@ print_stderr = partial(print, file=sys.stderr)
 
 # for font in $(ls -1 /usr/share/figlet/ | sed '/[-_]/d' | sed 's/\..*$//g'); do toilet -f "$font" "$(basename $PWD)"; done
 BANNER = r"""
+      _                  _                                     _
  _ __(_)_ __   ___      (_)_ __        ___  ___  __ _ _ __ ___| |__
 | '__| | '_ \ / _ \_____| | '_ \ _____/ __|/ _ \/ _` | '__/ __| '_ \
 | |  | | |_) |  __/_____| | |_) |_____\__ \  __/ (_| | | | (__| | | |
