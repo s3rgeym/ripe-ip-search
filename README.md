@@ -10,7 +10,8 @@ pipx install ripe-ip-search
 git clone https://github.com/s3rgeym/ripe-ip-search.git
 pipx install .
 
-pipx install git+https://github.com/s3rgeym/ripe-ip-search.git
+# latest commit
+pipx install --force git+https://github.com/s3rgeym/ripe-ip-search.git
 ```
 
 Usage:
