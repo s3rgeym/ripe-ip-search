@@ -90,7 +90,8 @@ def parse_args(
     argv: Sequence[str] | None = None,
 ) -> tuple[argparse.ArgumentParser, NameSpace]:
     parser = argparse.ArgumentParser(
-        description="Search ip adresses using RIPE DB"
+        description="Search ip adresses using RIPE DB",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
         "--banner",
@@ -101,7 +102,7 @@ def parse_args(
     parser.add_argument(
         "--delay",
         type=float,
-        default=0.3,
+        default=0.334,
         help="delay between requests in seconds",
     )
     parser.add_argument(
@@ -201,8 +202,10 @@ class SearchClient:
         self, method: str, endpoint: str, *args: Any, **kwargs: Any
     ) -> dict:
         try:
-            if (dt := self.last_request - time.monotonic() + self.request_delay) > 0:
-                _LOG.debug("sleep: %.3f", dt)
+            if (
+                dt := self.last_request - time.monotonic() + self.request_delay
+            ) > 0:
+                _LOG.debug("wait before request: %.3fs", dt)
                 time.sleep(dt)
             r = self.session.request(
                 method,
@@ -215,7 +218,7 @@ class SearchClient:
         except requests.JSONDecodeError as ex:
             raise ApiError() from ex
         finally:
-            self.last_reqest = time.monotonic()
+            self.last_request = time.monotonic()
 
     def _normalize_docs(self, data: dict) -> list[list[tuple[str, str]]]:
         return [
