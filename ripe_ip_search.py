@@ -167,7 +167,7 @@ class SearchClient:
     _: KW_ONLY
     api_url: str = "https://apps.db.ripe.net/db-web-ui/api/rest"
     last_request: float = 0.0
-    request_delay: float = 0.3
+    request_delay: float = 0.334
     session: requests.Session | None = None
 
     def __post_init__(self):
