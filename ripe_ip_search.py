@@ -127,7 +127,7 @@ class SearchClient:
     ) -> dict:
         try:
             r = self.session.request(
-                method, 
+                method,
                 self.api_url + endpoint,
                 *args,
                 headers=self._get_headers(),
@@ -214,22 +214,7 @@ def inetnum2dict(data: list[tuple[str, str]]) -> dict[str, str | list[str]]:
     return rv
 
 
-def main(argv: Sequence[str] | None = None) -> None:
-    parser, args = parse_args(argv=argv)
-
-    if not (search_term := args.search_term.strip()):
-        parser.error("empty search text")
-
-    logging_level = max(
-        logging.DEBUG,
-        logging.WARNING - args.verbosity * logging.DEBUG,
-    )
-
-    # logging.basicConfig(level=logging_level, handlers=[ColorHandler()])
-
-    _LOG.setLevel(logging_level)
-    _LOG.addHandler(ColorHandler())
-
+def ripe_ip_search(search_term: str, detailed: bool) -> None:
     client = SearchClient()
 
     for start in itertools.count(step=10):
@@ -243,7 +228,7 @@ def main(argv: Sequence[str] | None = None) -> None:
             assert item["object-type"] in ("inetnum", "inet6num")
             try:
                 networks = list(get_networks(item["lookup-key"]))
-                if args.detailed:
+                if detailed:
                     json.dump(
                         {
                             "networks": list(map(str, networks)),
@@ -263,7 +248,29 @@ def main(argv: Sequence[str] | None = None) -> None:
         if start + len(search_result.items) >= search_result.total:
             break
 
-    _LOG.info("Finished!")
+
+def main(argv: Sequence[str] | None = None) -> int | None:
+    parser, args = parse_args(argv=argv)
+
+    if not (search_term := args.search_term.strip()):
+        parser.error("empty search text")
+
+    logging_level = max(
+        logging.DEBUG,
+        logging.WARNING - args.verbosity * logging.DEBUG,
+    )
+
+    # logging.basicConfig(level=logging_level, handlers=[ColorHandler()])
+
+    _LOG.setLevel(logging_level)
+    _LOG.addHandler(ColorHandler())
+
+    try:
+        ripe_ip_search(search_term=search_term, detailed=args.detailed)
+        _LOG.info("Finished!")
+    except KeyboardInterrupt:
+        _LOG.critical("Search interrupted by user")
+        return 1
 
 
 if __name__ == "__main__":
