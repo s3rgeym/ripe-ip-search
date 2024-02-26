@@ -12,7 +12,7 @@ from typing import (
     NotRequired,
     Literal,
 )
-from dataclasses import dataclass
+from dataclasses import KW_ONLY, dataclass
 from urllib.parse import urljoin
 from functools import cached_property, partial
 import logging
@@ -164,10 +164,11 @@ class InetnumDict(
 
 @dataclass
 class SearchClient:
-    request_delay: float = 0.3
-    session: requests.Session | None = None
+    _: KW_ONLY
     api_url: str = "https://apps.db.ripe.net/db-web-ui/api/rest"
     last_request: float = 0.0
+    request_delay: float = 0.3
+    session: requests.Session | None = None
 
     def __post_init__(self):
         self.session = self.session or requests.session()
