@@ -9,6 +9,7 @@ authors = [{name = "Sergey M"}]
 readme = "README.md"
 license = {file = "LICENSE"}
 classifiers = ["License :: OSI Approved :: Apache Software License"]
+requires-python = ">=3.11.7"
 
 dependencies = [
   "requests",
@@ -17,7 +18,12 @@ dependencies = [
 dynamic = ["version"]
 
 # pip install -e '.[dev]'
+# pip install -e '.[test]'
 [project.optional-dependencies]
+test = [
+  "pytest",
+]
+
 dev = [
   "black",
   "pylint",

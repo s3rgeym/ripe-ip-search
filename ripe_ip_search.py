@@ -14,16 +14,28 @@ from typing import (
 )
 from dataclasses import dataclass
 from urllib.parse import urljoin
-from functools import cached_property
+from functools import cached_property, partial
 import logging
 import itertools
 import ipaddress
 import json
 import os
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
+__author__ = "Sergey M"
 
 _LOG = logging.getLogger(__name__)
+
+print_stderr = partial(print, file=sys.stderr)
+
+# for font in $(ls -1 /usr/share/figlet/ | sed '/[-_]/d' | sed 's/\..*$//g'); do toilet -f "$font" "$(basename $PWD)"; done
+BANNER = r"""
+ _ __(_)_ __   ___      (_)_ __        ___  ___  __ _ _ __ ___| |__
+| '__| | '_ \ / _ \_____| | '_ \ _____/ __|/ _ \/ _` | '__/ __| '_ \
+| |  | | |_) |  __/_____| | |_) |_____\__ \  __/ (_| | | | (__| | | |
+|_|  |_| .__/ \___|     |_| .__/      |___/\___|\__,_|_|  \___|_| |_|
+       |_|                |_|
+"""
 
 
 class ANSI:
@@ -67,7 +79,7 @@ class ColorHandler(logging.StreamHandler):
 class NameSpace(argparse.Namespace):
     search_term: str
     verbosity: int
-    detailed: bool
+    details: bool
 
 
 def parse_args(
@@ -84,10 +96,10 @@ def parse_args(
         help="increase verbosity level",
     )
     parser.add_argument(
-        "--detailed",
+        "--details",
         action=argparse.BooleanOptionalAction,
         default=False,
-        help="show detailed results",
+        help="show details",
     )
     parser.add_argument("search_term", help="search text")
 
@@ -159,11 +171,11 @@ class SearchClient:
         # по факту нужен только один заголовок
         # return {"accept": "application/json"}
         return {
-            "Accept": "application/json, text/plain, */*",
             "Accept-Language": "en-US,en;q=0.9",
+            "Accept": "application/json, text/plain, */*",
             "Content-Type": "application/json; charset=utf-8",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
             "Referer": self.referer,
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
             "X-Requested-With": "XMLHttpRequest",
         }
 
@@ -242,11 +254,13 @@ class SearchClient:
         return rv
 
     def search_inetnums(self, search_term: str) -> Iterable[InetnumDict]:
-        for start in itertools.count(step=10):
+        step = 10
+        for start in itertools.count(step=step):
             search_result = self.search(
                 q=f'("{search_term}") AND (object-type:inet6num OR object-type:inetnum)',
                 start=start,
             )
+            assert step >= len(search_result.items)
             yield from map(self._inetnum2dict, search_result.items)
             if start + len(search_result.items) >= search_result.total:
                 break
@@ -284,6 +298,8 @@ def main(argv: Sequence[str] | None = None) -> int | None:
     _LOG.setLevel(logging_level)
     _LOG.addHandler(ColorHandler())
 
+    print_stderr(BANNER)
+
     try:
         client = SearchClient()
         for item in client.search_inetnums(search_term=search_term):
@@ -291,14 +307,14 @@ def main(argv: Sequence[str] | None = None) -> int | None:
             assert item["object-type"] in ("inetnum", "inet6num")
             try:
                 networks = list(get_networks(item["lookup-key"]))
-                if args.detailed:
+                if args.details:
                     json.dump(
                         {
                             "networks": list(map(str, networks)),
                             "num_addresses": sum(
                                 net.num_addresses for net in networks
                             ),
-                            "item": item,
+                            "details": item,
                         },
                         sys.stdout,
                     )
