@@ -20,8 +20,9 @@ import itertools
 import ipaddress
 import json
 import os
+import time
 
-__version__ = "0.1.8"
+__version__ = "0.1.9"
 __author__ = "Sergey M"
 
 _LOG = logging.getLogger(__name__)
@@ -82,6 +83,7 @@ class NameSpace(argparse.Namespace):
     verbosity: int
     details: bool
     banner: bool
+    delay: float
 
 
 def parse_args(
@@ -91,11 +93,16 @@ def parse_args(
         description="Search ip adresses using RIPE DB"
     )
     parser.add_argument(
-        "-v",
-        "--verbosity",
-        action="count",
-        default=0,
-        help="increase verbosity level",
+        "--banner",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="show banner",
+    )
+    parser.add_argument(
+        "--delay",
+        type=float,
+        default=0.3,
+        help="delay between requests in seconds",
     )
     parser.add_argument(
         "--details",
@@ -104,10 +111,11 @@ def parse_args(
         help="show details",
     )
     parser.add_argument(
-        "--banner",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="show banner",
+        "-v",
+        "--verbosity",
+        action="count",
+        default=0,
+        help="increase verbosity level",
     )
     parser.add_argument("search_term", nargs="+", help="search text")
 
@@ -155,8 +163,10 @@ class InetnumDict(
 
 @dataclass
 class SearchClient:
+    request_delay: float = 0.3
     session: requests.Session | None = None
     api_url: str = "https://apps.db.ripe.net/db-web-ui/api/rest"
+    last_request: float = 0.0
 
     def __post_init__(self):
         self.session = self.session or requests.session()
@@ -191,6 +201,9 @@ class SearchClient:
         self, method: str, endpoint: str, *args: Any, **kwargs: Any
     ) -> dict:
         try:
+            if (dt := self.last_request - time.monotonic() + self.request_delay) > 0:
+                _LOG.debug("sleep: %.3f", dt)
+                time.sleep(dt)
             r = self.session.request(
                 method,
                 self.api_url + endpoint,
@@ -201,6 +214,8 @@ class SearchClient:
             return r.json()
         except requests.JSONDecodeError as ex:
             raise ApiError() from ex
+        finally:
+            self.last_reqest = time.monotonic()
 
     def _normalize_docs(self, data: dict) -> list[list[tuple[str, str]]]:
         return [
@@ -320,29 +335,30 @@ def main(argv: Sequence[str] | None = None) -> int | None:
         print_stderr(BANNER)
 
     try:
-        client = SearchClient()
+        client = SearchClient(request_delay=args.delay)
         for item in client.search_inetnums(search_term=search_term):
             _LOG.debug(item)
             assert item["object-type"] in ("inetnum", "inet6num")
-            try:
-                networks = list(get_networks(item["lookup-key"]))
-                if args.details:
-                    json.dump(
-                        {
-                            "networks": list(map(str, networks)),
-                            "num_addresses": sum(
-                                net.num_addresses for net in networks
-                            ),
-                            "details": item,
-                        },
-                        sys.stdout,
-                    )
-                    sys.stdout.write(os.linesep)
-                else:
-                    for net in networks:
-                        print(net)
-            except Exception as ex:
-                _LOG.warning(ex)
+            # try:
+            networks = list(get_networks(item["lookup-key"]))
+            if args.details:
+                json.dump(
+                    {
+                        "networks": list(map(str, networks)),
+                        "num_addresses": sum(
+                            net.num_addresses for net in networks
+                        ),
+                        "details": item,
+                    },
+                    sys.stdout,
+                )
+                sys.stdout.write(os.linesep)
+            else:
+                for net in networks:
+                    print(net)
+            # тут я отлавливал ошибку с неправильным ip range, но лучше пусть свалится
+            # except Exception as ex:
+            #     _LOG.warning(ex)
         _LOG.info("Finished!")
     except KeyboardInterrupt:
         _LOG.critical("Search interrupted by user")
