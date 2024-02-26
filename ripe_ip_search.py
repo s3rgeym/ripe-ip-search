@@ -13,6 +13,8 @@ from typing import (
     Literal,
 )
 from dataclasses import dataclass
+from urllib.parse import urljoin
+from functools import cached_property
 import logging
 import itertools
 import ipaddress
@@ -149,6 +151,10 @@ class SearchClient:
             "wt": "json",
         }
 
+    @cached_property
+    def referer(self) -> str:
+        return urljoin(self.api_url, '/db-web-ui/fulltextsearch')
+
     def _get_headers(self) -> dict[str, str]:
         # по факту нужен только один заголовок
         # return {"accept": "application/json"}
@@ -157,6 +163,7 @@ class SearchClient:
             "Accept-Language": "en-US,en;q=0.9",
             "Content-Type": "application/json; charset=utf-8",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+            "Referer": self.referer,
             "X-Requested-With": "XMLHttpRequest",
         }
 
