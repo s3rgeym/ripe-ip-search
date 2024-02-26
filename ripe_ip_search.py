@@ -1,8 +1,17 @@
+#!/sur/bin/env python
 import requests
 import argparse
 
 import sys
-from typing import Sequence, Any, NamedTuple, Iterable, TypedDict, NotRequired
+from typing import (
+    Sequence,
+    Any,
+    NamedTuple,
+    Iterable,
+    TypedDict,
+    NotRequired,
+    Literal,
+)
 from dataclasses import dataclass
 import logging
 import itertools
@@ -101,18 +110,23 @@ class SearchResult(NamedTuple):
     items: list[list[tuple[str, str]]]
 
 
-class InetnumDict(TypedDict(
-    "InetnumDict",
-    {
-        "primary-key": str,
-        "lookup-key": str,
-    },
-)):
+class InetnumDict(
+    TypedDict(
+        "InetnumDict",
+        {
+            "object-type": Literal["inetnum", "inet6num"],
+            "primary-key": str,
+            "lookup-key": str,
+        },
+    )
+):
     country: NotRequired[str]
     inetnum: NotRequired[str]
     inet6num: NotRequired[str]
     netname: NotRequired[str]
     descr: NotRequired[list[str]]
+    notify: NotRequired[list[str]]
+    remarks: NotRequired[list[str]]
     status: NotRequired[str]
     ...
 
@@ -199,9 +213,9 @@ class SearchClient:
             "mnt-routes",
             "mnt-irt",
         ]
-    
+
         rv = {}
-    
+
         for key, value in data:
             if key in multiple_fields:
                 rv.setdefault(key, [])
@@ -209,9 +223,8 @@ class SearchClient:
             else:
                 assert key not in rv
                 rv[key] = value
-    
-        return rv
 
+        return rv
 
     def search_inetnums(self, search_term: str) -> Iterable[InetnumDict]:
         for start in itertools.count(step=10):
