@@ -142,16 +142,14 @@ class SearchResult(NamedTuple):
     items: list[list[tuple[str, str]]]
 
 
-class InetnumDict(
-    TypedDict(
-        "_InetnumDict",
-        {
-            "object-type": Literal["inetnum", "inet6num"],
-            "primary-key": str,
-            "lookup-key": str,
-        },
-    )
-):
+_InetnumDict = TypedDict("_InetnumDict", {
+    "object-type": Literal["inetnum", "inet6num"],
+    "primary-key": str,
+    "lookup-key": str,
+})
+
+
+class InetnumDict(_InetnumDict):
     country: NotRequired[list[str]]
     inetnum: NotRequired[str]
     inet6num: NotRequired[str]
