@@ -421,7 +421,8 @@ confidence=HIGH,
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use "--disable=all --enable=classes
 # --disable=W".
-disable=raw-checker-failed,
+disable=
+      raw-checker-failed,
       bad-inline-option,
       locally-disabled,
       file-ignored,
@@ -429,17 +430,20 @@ disable=raw-checker-failed,
       useless-suppression,
       deprecated-pragma,
       use-symbolic-message-instead,
-      wrong-import-order,
-      line-too-long,
-      unknown-option-value,
-      missing-module-doctsring,
-      missing-class-doctsring,
-      missing-function-doctsring,
+      missing-module-docstring,
+      missing-class-docstring,
+      too-few-public-methods,
+      missing-function-docstring,
+      invalid-name,
+      inconsistent-return-statements,
+      dangerous-default-value,
       inherit-non-class,
+      line-too-long,
+      logging-fstring-interpolation,
       raise-missing-from,
       unnecessary-ellipsis,
-      logging-fstring-interpolation,
-	dangerous-default-value
+      wrong-import-order,
+
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
