@@ -11,6 +11,7 @@ from typing import (
     TypedDict,
     NotRequired,
     Literal,
+    ClassVar,
 )
 from dataclasses import KW_ONLY, dataclass
 from urllib.parse import urljoin
@@ -170,6 +171,8 @@ class SearchClient:
     request_delay: float = 0.334
     session: requests.Session | None = None
 
+    PER_PAGE: ClassVar[int] = 10 
+
     def __post_init__(self):
         self.session = self.session or requests.session()
 
@@ -285,13 +288,12 @@ class SearchClient:
         return s if s.isalnum() else '"' + s.replace('"', r"\"") + '"'
 
     def search_inetnums(self, search_term: str) -> Iterable[InetnumDict]:
-        step = 10
-        for start in itertools.count(step=step):
+        for start in itertools.count(step=self.PER_PAGE):
             search_result = self.search(
                 q=f"({self._quote(search_term)}) AND (object-type:inetnum OR object-type:inet6num)",
                 start=start,
             )
-            assert step >= len(search_result.items)
+            assert self.PER_PAGE >= len(search_result.items)
             yield from map(self._inetnum2dict, search_result.items)
             processed = start + len(search_result.items)
             _LOG.debug(
