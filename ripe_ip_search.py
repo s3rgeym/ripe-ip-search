@@ -171,8 +171,6 @@ class SearchClient:
     request_delay: float = 0.334
     session: requests.Session | None = None
 
-    PER_PAGE: ClassVar[int] = 10 
-
     def __post_init__(self):
         self.session = self.session or requests.session()
 
@@ -252,48 +250,48 @@ class SearchClient:
             items=self._normalize_docs(data),
         )
 
+    # Некоторые поля встречаются более одного раза
+    # $ whois -t inetnum | grep multiple | cut -d: -f1 | jq --raw-input . | jq --slurp .
+    _inetnum_multiple: ClassVar[list[str]] = [
+        "descr",
+        # я думал, что country не может дублироваться, но все же нашел такую запись
+        "country",
+        "language",
+        "admin-c",
+        "tech-c",
+        "remarks",
+        "notify",
+        "mnt-by",
+        "mnt-lower",
+        "mnt-domains",
+        "mnt-routes",
+        "mnt-irt",
+    ]
+
     def _inetnum2dict(self, data: list[tuple[str, str]]) -> InetnumDict:
-        # Некоторые поля встречаются более одного раза
-        # $ whois -t inetnum | grep multiple | cut -d: -f1 | jq --raw-input . | jq --slurp .
-        multiple_fields = [
-            "descr",
-            # я думал, что country не может дублироваться, но все же нашел такую запись
-            "country",
-            "language",
-            "admin-c",
-            "tech-c",
-            "remarks",
-            "notify",
-            "mnt-by",
-            "mnt-lower",
-            "mnt-domains",
-            "mnt-routes",
-            "mnt-irt",
-        ]
-
         rv = {}
-
         for key, value in data:
-            if key in multiple_fields:
+            if key in self._inetnum_multiple:
                 rv.setdefault(key, [])
                 rv[key].append(value)
             else:
                 assert key not in rv, f"duplcated key: {key}"
                 rv[key] = value
-
         return rv
 
     def _quote(self, s: str) -> str:
         # как оказалось кавычки необязательны
         return s if s.isalnum() else '"' + s.replace('"', r"\"") + '"'
 
+    _items_per_page: ClassVar[int] = 10
+
     def search_inetnums(self, search_term: str) -> Iterable[InetnumDict]:
-        for start in itertools.count(step=self.PER_PAGE):
+        for start in itertools.count(step=self._items_per_page):
             search_result = self.search(
                 q=f"({self._quote(search_term)}) AND (object-type:inetnum OR object-type:inet6num)",
                 start=start,
             )
-            assert self.PER_PAGE >= len(search_result.items)
+            assert self._items_per_page >= len(search_result.items)
             yield from map(self._inetnum2dict, search_result.items)
             processed = start + len(search_result.items)
             _LOG.debug(
