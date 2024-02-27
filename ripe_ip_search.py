@@ -201,7 +201,11 @@ class SearchClient:
         }
 
     def request(
-        self, method: str, endpoint: str, *args: Any, **kwargs: Any
+        self,
+        method: str,
+        endpoint: str,
+        *args: Any,
+        **kwargs: Any,
     ) -> dict:
         try:
             if (
